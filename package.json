@@ -1,0 +1,71 @@
+{
+  "name": "dopkabot",
+  "version": "0.0.1",
+  "private": true,
+  "description": "DopkaBot",
+  "main": "src/index.js",
+  "scripts": {
+    "start": "DEBUG=dopkabot:* nodemon src/index.js --exec babel-node",
+    "build": "babel src -d dist",
+    "clean": "rm -rf dist",
+    "serve": "node dist/index.js",
+    "fix": "yarn run lint --fix",
+    "lint": "eslint -c .eslintrc.js --ignore-path .gitignore --ignore-pattern \"!**/.*\" .",
+    "precommit": "lint-staged"
+  },
+  "author": "Pyroarsonist <velikiydan@gmail.com>",
+  "dependencies": {
+    "async": "^2.2.0",
+    "copyfiles": "^2.0.0",
+    "debug": "^4.1.0",
+    "dotenv": "^6.0.0",
+    "isomorphic-fetch": "^2.2.1",
+    "lodash": "^4.17.10",
+    "moment": "^2.22.2",
+    "mongoose": "^5.3.13",
+    "telegraf": "^3.24.0"
+  },
+  "devDependencies": {
+    "@babel/cli": "^7.1.5",
+    "@babel/core": "^7.1.2",
+    "@babel/node": "^7.0.0",
+    "@babel/plugin-proposal-optional-chaining": "^7.0.0",
+    "@babel/preset-env": "^7.1.0",
+    "babel-eslint": "^8.2.3",
+    "babel-plugin-module-resolver": "^3.1.1",
+    "eslint": "^5.2.0",
+    "eslint-config-airbnb": "^17.1.0",
+    "eslint-config-google": "^0.9.1",
+    "eslint-config-prettier": "^3.0.1",
+    "eslint-import-resolver-babel-module": "^4.0.0",
+    "eslint-plugin-css-modules": "^2.7.5",
+    "eslint-plugin-es6": "^1.0.0",
+    "eslint-plugin-flowtype": "^2.50.0",
+    "eslint-plugin-import": "^2.14.0",
+    "eslint-plugin-jest": "^21.18.0",
+    "eslint-plugin-jsx-a11y": "^6.0.3",
+    "eslint-plugin-prettier": "^2.6.0",
+    "eslint-plugin-react": "^7.8.2",
+    "lint-staged": "^7.2.2",
+    "nodemon": "^1.18.4",
+    "prettier": "^1.14.2",
+    "prettier-eslint": "^8.8.1"
+  },
+  "lint-staged": {
+    "*.{js,jsx}": [
+      "eslint --no-ignore --fix",
+      "git add --force"
+    ],
+    "*.{json,md,graphql}": [
+      "prettier --write",
+      "git add --force"
+    ],
+    "*.{css,less,styl,scss,sass,sss}": [
+      "stylelint --fix",
+      "git add --force"
+    ]
+  },
+  "resolutions": {
+    "**/event-stream": "^4.0.1"
+  }
+}
