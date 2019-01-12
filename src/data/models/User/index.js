@@ -28,6 +28,18 @@ function getUser() {
   };
 }
 
+function getMention() {
+  const tg = `(tg://user?id=${this.id})`;
+  if (this.username) {
+    return `[${this.username}]${tg}`;
+  }
+  const firstName = this.firstName ? `${this.firstName} ` : '';
+  const lastName = this.lastName ? this.lastName : '';
+  return `[${firstName}${lastName}]${tg}`;
+}
+
 User.virtual('formatted').get(getUser);
+
+User.virtual('mention').get(getMention);
 
 export default db.model('User', User);

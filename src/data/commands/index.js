@@ -48,10 +48,7 @@ export default () => {
       chat: ctx.pyroChat._id,
       user: ctx.pyroUser._id,
     });
-    const userMention = `[${ctx.pyroUser.firstName} ${
-      ctx.pyroUser.lastName
-    }](tg://user?id=${ctx.pyroUser.id})`;
-    const text = `${userMention} был на допке ${count} раз`;
+    const text = `${ctx.pyroUser.mention} был на допке ${count} раз`;
     return ctx.replyWithMarkdown(text);
   });
 
@@ -79,14 +76,11 @@ export default () => {
       const userOnDopka = await User.findById(dopka.user._id);
       if (!userOnDopka)
         return ctx.reply('Так дети, все, я ушла и больше не принимаю');
-      const userMention = `[${userOnDopka.firstName} ${
-        userOnDopka.lastName
-      }](tg://user?id=${userOnDopka.id})`;
       const seconds =
         (Date.parse(dopka.createdAt) + intervals.dopka - Date.now()) / 1000;
-      const text = `На дополнительной сессии у меня уже есть студент.\n${userMention} вроде его звали.\nДо новой допки осталось:\n_${formatTime(
-        seconds,
-      )}_`;
+      const text = `На дополнительной сессии у меня уже есть студент.\n${
+        userOnDopka.mention
+      } вроде его звали.\nДо новой допки осталось:\n_${formatTime(seconds)}_`;
       return ctx.replyWithMarkdown(text);
     }
     const usersRelation = await UserSubToChat.find({
@@ -104,10 +98,9 @@ export default () => {
       chat: ctx.pyroChat._id,
       user: onDopkaUserRelation.user,
     }).save();
-    const userMention = `[${userOnDopka.firstName} ${
-      userOnDopka.lastName
-    }](tg://user?id=${userOnDopka.id})`;
-    const text = `Тааак...\nПосмотрим на списки, кто не ходил на лекции...\nКажется, я знаю кто будет победителем сегодняшнего экзамена...\n${userMention} отправляется на допку`;
+    const text = `Тааак...\nПосмотрим на списки, кто не ходил на лекции...\nКажется, я знаю кто будет победителем сегодняшнего экзамена...\n${
+      userOnDopka.mention
+    } отправляется на допку`;
     return ctx.replyWithMarkdown(text);
   });
 
@@ -118,10 +111,9 @@ export default () => {
     });
     userRelation.active = false;
     await userRelation.save();
-    const userMention = `[${ctx.pyroUser.firstName} ${
-      ctx.pyroUser.lastName
-    }](tg://user?id=${ctx.pyroUser.id})`;
-    const text = `${userMention} значит уходит после пары, а что дальше?\nВ армию пойдете?`;
+    const text = `${
+      ctx.pyroUser.mention
+    } значит уходит после пары, а что дальше?\nВ армию пойдете?`;
     return ctx.replyWithMarkdown(text);
   });
 
@@ -154,10 +146,7 @@ export default () => {
       text = 'Пока что тут пусто...\nНо *каждый* может стать первым!';
     } else {
       userDopkas.forEach(({ user, count }, i) => {
-        const userMention = `[${user.firstName} ${
-          user.lastName
-        }](tg://user?id=${user.id})`;
-        text += `${i + 1}. ${userMention} был на допке ${count} раз\n`;
+        text += `${i + 1}. ${user.mention} был на допке ${count} раз\n`;
       });
     }
 
