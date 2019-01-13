@@ -36,10 +36,10 @@ export default () => {
   bot.command('help', async ctx =>
     ctx.replyWithMarkdown(
       'Всем добрый времени суток, студенты.\n' +
-        'Я надеюсь вы будете слушать внимательно, не перебивая меня и переспрашивая 100 раз, как это бывает.\n' +
-        `Так вот, раз в *${formatTime(
+        'Я надеюсь вы будете слушать внимательно, не перебивая меня и не переспрашивая 100 раз, как это бывает.\n' +
+        `Так вот, раз в ${formatTime(
           intervals.dopka / 1000,
-        )}*у меня проходит экзамен, а значит приходите уже готовыми.\nЖду вас, не опаздывайте.`,
+        )} у меня проходит экзамен, а значит приходите уже готовыми.\nЖду вас, не опаздывайте.`,
     ),
   );
 
@@ -58,18 +58,20 @@ export default () => {
       ctx.pyroChat._id,
     );
     const { pyroUser } = ctx;
-    const userMention = `[${pyroUser.firstName} ${
-      pyroUser.lastName
-    }](tg://user?id=${pyroUser.id})`;
     const text = wasCreated
-      ? `${userMention}, так, значит это лабу донесешь, жду на экзамене`
-      : `${userMention}, ты глухой что-ли?\nЯ тебя уже отконсультировала, иди готовься к экзамену`;
+      ? `${pyroUser.mention}, так, значит лабу донесешь, жду на экзамене`
+      : `${
+          pyroUser.mention
+        }, ты глухой что-ли?\nЯ тебя уже отконсультировала, иди готовься к экзамену`;
     return ctx.replyWithMarkdown(text);
   });
 
   bot.command('dopka', async ctx => {
     const dopkaInterval = Date.now() - intervals.dopka;
-    const dopka = await Dopka.findOne({ createdAt: { $gt: dopkaInterval } })
+    const dopka = await Dopka.findOne({
+      createdAt: { $gt: dopkaInterval },
+      chat: ctx.pyroChat._id,
+    })
       .sort({ createdAt: 'desc' })
       .limit(1);
     if (dopka) {
@@ -78,9 +80,9 @@ export default () => {
         return ctx.reply('Так дети, все, я ушла и больше не принимаю');
       const seconds =
         (Date.parse(dopka.createdAt) + intervals.dopka - Date.now()) / 1000;
-      const text = `На дополнительной сессии у меня уже есть студент.\n${
-        userOnDopka.mention
-      } вроде его звали.\nДо новой допки осталось:\n_${formatTime(seconds)}_`;
+      const text = `На допке уже чиллит ${
+        userOnDopka.name
+      }\nДо новой допки осталось ${formatTime(seconds)}`;
       return ctx.replyWithMarkdown(text);
     }
     const usersRelation = await UserSubToChat.find({
@@ -98,10 +100,16 @@ export default () => {
       chat: ctx.pyroChat._id,
       user: onDopkaUserRelation.user,
     }).save();
-    const text = `Тааак...\nПосмотрим на списки, кто не ходил на лекции...\nКажется, я знаю кто будет победителем сегодняшнего экзамена...\n${
-      userOnDopka.mention
-    } отправляется на допку`;
-    return ctx.replyWithMarkdown(text);
+    await ctx.replyWithMarkdown('Тааак...');
+    await ctx.replyWithMarkdown(
+      'Посмотрим на списки, кто не ходил на лекции...',
+    );
+    await ctx.replyWithMarkdown(
+      'Кажется, я знаю кто сегодня даже ешку не получит...',
+    );
+    return ctx.replyWithMarkdown(
+      `${userOnDopka.mention} отправляется на допку`,
+    );
   });
 
   bot.on('left_chat_participant', async ctx => {
@@ -146,7 +154,7 @@ export default () => {
       text = 'Пока что тут пусто...\nНо *каждый* может стать первым!';
     } else {
       userDopkas.forEach(({ user, count }, i) => {
-        text += `${i + 1}. ${user.mention} был на допке ${count} раз\n`;
+        text += `${i + 1}. ${user.name} был на допке ${count} раз\n`;
       });
     }
 

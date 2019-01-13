@@ -1,13 +1,14 @@
 import moment from 'moment';
 
 export default seconds => {
+  const formats = [];
   const hours = moment.duration(seconds, 'seconds').asHours();
-  const hoursFormat = hours === 0 ? '' : `${parseInt(hours)} часов `;
-
   const mins = moment.duration(seconds, 'seconds').minutes();
-  const minsFormat = mins === 0 ? '' : `${parseInt(mins)} минут `;
-
   const secs = moment.duration(seconds, 'seconds').seconds();
-  const secsFormat = secs === 0 ? '' : `${parseInt(secs)} секунд `;
-  return `${hoursFormat}${minsFormat}${secsFormat}`;
+
+  if (hours !== 0) formats.push(`${parseInt(hours)} часов`);
+  if (mins !== 0) formats.push(`${parseInt(mins)} минут`);
+  if (secs !== 0) formats.push(`${parseInt(secs)} секунд`);
+
+  return `_${formats.join(' ')}_`;
 };
