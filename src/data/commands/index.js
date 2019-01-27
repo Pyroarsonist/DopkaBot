@@ -6,6 +6,7 @@ import {
   findOrCreateUser,
   findOrCreateChat,
   Dopka,
+  Recovery,
   findOrCreateActiveSub,
   UserSubToChat,
   User,
@@ -143,22 +144,93 @@ export default () => {
         $limit: 10,
       },
     ]);
+    const recoveries = await Recovery.aggregate([
+      {
+        $match: { chat: ctx.pyroChat._id },
+      },
+      {
+        $group: {
+          _id: '$user',
+          count: { $sum: 1 },
+        },
+      },
+      {
+        $sort: { count: -1 },
+      },
+      {
+        $limit: 10,
+      },
+    ]);
     const userDopkas = await Promise.all(
       dopkas.map(async dopka => {
         const user = await User.findById(dopka._id);
         return { user, count: dopka.count };
       }),
     );
+    const userRecoveries = await Promise.all(
+      recoveries.map(async recovery => {
+        const user = await User.findById(recovery._id);
+        return { user, count: recovery.count };
+      }),
+    );
     let text = '';
-    if (userDopkas.length === 0) {
+    if (userDopkas.length + userRecoveries.length === 0) {
       text = 'Пока что тут пусто...\nНо *каждый* может стать первым!';
     } else {
-      userDopkas.forEach(({ user, count }, i) => {
-        text += `${i + 1}. ${user.name} был на допке ${count} раз\n`;
-      });
+      if (userDopkas.length > 0) {
+        text += 'Допки ☠️\n';
+        userDopkas.forEach(({ user, count }, i) => {
+          text += `${i + 1}. ${user.name} был на допке ${count} раз\n`;
+        });
+      }
+      if (userRecoveries.length > 0) {
+        text += 'Восстановления ✝️\n';
+        userRecoveries.forEach(({ user, count }, i) => {
+          text += `${i + 1}. ${user.name} был на восстановлении ${count} раз\n`;
+        });
+      }
     }
 
     return ctx.replyWithMarkdown(text);
+  });
+
+  bot.command('recovery', async ctx => {
+    const recoveryInterval = Date.now() - intervals.recovery;
+    const recovery = await Recovery.findOne({
+      createdAt: { $gt: recoveryInterval },
+      chat: ctx.pyroChat._id,
+    })
+      .sort({ createdAt: 'desc' })
+      .limit(1);
+    if (recovery) {
+      const userOnRecovery = await User.findById(recovery.user._id);
+      if (!userOnRecovery) return ctx.reply('Ты отчислен, что ты тут делаешь?');
+      const seconds =
+        (Date.parse(recovery.createdAt) + intervals.recovery - Date.now()) /
+        1000;
+      const text = `Уже восстановился ${
+        userOnRecovery.name
+      }\nДо нового восстановления осталось ${formatTime(seconds)}`;
+      return ctx.replyWithMarkdown(text);
+    }
+    const dopkas = await Dopka.find({
+      chat: ctx.pyroChat._id,
+    }).toArray();
+    if (dopkas.length === 0) {
+      return ctx.replyWithMarkdown(
+        `Молодцы, все хорошо учились и даже восстанавливать некого!`,
+      );
+    }
+    const randomDopka = _.sample(dopkas);
+    const userOnRecovery = await User.findById(randomDopka.user);
+    await new Recovery({
+      chat: ctx.pyroChat._id,
+      user: randomDopka.user,
+    }).save();
+    await ctx.replyWithMarkdown('Значит вот эту справку оформишь...');
+    await ctx.replyWithMarkdown('Это занеси в 31 корпус...');
+    await ctx.replyWithMarkdown('Документы почти готовы...');
+    return ctx.replyWithMarkdown(`${userOnRecovery.mention} восстановился!`);
   });
 
   bot.command('shrug', async ctx => ctx.replyWithMarkdown('*¯\\_(ツ)_/¯*'));

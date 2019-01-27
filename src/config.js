@@ -22,6 +22,7 @@ export const mongoDB = process.env.MONGO_DB;
 
 export const intervals = {
   dopka: process.env.DOPKA_INTERVAL || 12 * 60 * 60 * 1000, // 12 hours
+  recovery: process.env.RECOVERY_INTERVAL || 12 * 60 * 60 * 1000, // 12 hours
 };
 
 // eslint-disable-next-line no-underscore-dangle
