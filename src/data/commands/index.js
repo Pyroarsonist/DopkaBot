@@ -221,7 +221,7 @@ export default () => {
     }
     const dopkas = await Dopka.find({
       chat: ctx.pyroChat._id,
-    }).toArray();
+    });
     if (dopkas.length === 0) {
       return ctx.replyWithMarkdown(
         `Молодцы, все хорошо учились и даже восстанавливать некого!`,
