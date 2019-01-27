@@ -45,11 +45,17 @@ export default () => {
   );
 
   bot.command('me', async ctx => {
-    const count = await Dopka.count({
+    const countD = await Dopka.count({
       chat: ctx.pyroChat._id,
       user: ctx.pyroUser._id,
     });
-    const text = `${ctx.pyroUser.mention} был на допке ${count} раз`;
+    const countR = await Recovery.count({
+      chat: ctx.pyroChat._id,
+      user: ctx.pyroUser._id,
+    });
+    const text = `${
+      ctx.pyroUser.mention
+    } был на допке ${countD} раз, а на восстановлении ${countR} раз`;
     return ctx.replyWithMarkdown(text);
   });
 
