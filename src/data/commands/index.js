@@ -119,15 +119,24 @@ export default () => {
     );
   });
 
-  bot.on('left_chat_participant', async ctx => {
+  bot.on('new_chat_members', async ctx => {
+    const newUser = await findOrCreateUser(ctx.message.new_chat_participant);
+    const text = `${
+      newUser.mention
+    }, здравствуй, студент, садись около меня, на первой парте`;
+    return ctx.replyWithMarkdown(text);
+  });
+
+  bot.on('left_chat_member', async ctx => {
+    const leftUser = await findOrCreateUser(ctx.message.left_chat_participant);
     const userRelation = await UserSubToChat.findOne({
       chat: ctx.pyroChat._id,
-      user: ctx.pyroUser._id,
+      user: leftUser._id,
     });
     userRelation.active = false;
     await userRelation.save();
     const text = `${
-      ctx.pyroUser.mention
+      leftUser.mention
     } значит уходит после пары, а что дальше?\nВ армию пойдете?`;
     return ctx.replyWithMarkdown(text);
   });

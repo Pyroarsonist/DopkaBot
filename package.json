@@ -1,6 +1,6 @@
 {
   "name": "dopkabot",
-  "version": "0.0.4b",
+  "version": "0.0.5",
   "private": true,
   "description": "DopkaBot",
   "main": "src/index.js",
