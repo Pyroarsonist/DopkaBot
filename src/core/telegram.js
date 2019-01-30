@@ -40,7 +40,7 @@ export default async () => {
         source: tlsPaths.ca,
       });
       // telegram side
-      bot.startWebhook(`/bot${token}`, tlsOptions, 8443);
+      bot.startWebhook(`/bot${token}`, tlsOptions, server.port);
       debug('Started with webhook');
     }
   } catch (e) {
