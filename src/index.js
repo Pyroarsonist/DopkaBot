@@ -1,9 +1,4 @@
-import 'isomorphic-fetch';
-
-import debugHandler from 'debug';
 import telegram from './core/telegram';
-
-const debug = debugHandler('dopkabot:index');
 
 process
   .on('unhandledRejection', (reason, p) => {
@@ -15,8 +10,7 @@ process
     process.exit(1);
   });
 
-const promise = telegram().catch(err => debug(err.stack));
-
-promise.then(() => {
-  // init server
-});
+(async () => {
+  await telegram();
+  console.info('Dopka bot started');
+})();

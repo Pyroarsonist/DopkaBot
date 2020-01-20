@@ -1,11 +1,8 @@
-import Chat from './Chat';
-import findOrCreateChat from './Chat/helpers';
-import User from './User';
-import findOrCreateUser from './User/helpers';
+import Chat, { findOrCreateChat } from './Chat';
+import User, { findOrCreateUser } from './User';
 import Dopka from './Dopka';
 import Recovery from './Recovery';
-import UserSubToChat from './UserSubToChat';
-import findOrCreateActiveSub from './UserSubToChat/helpers';
+import UserSubToChat, { findOrCreateActiveSub } from './UserSubToChat';
 
 export {
   Chat,
