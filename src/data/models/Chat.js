@@ -1,5 +1,46 @@
+import { Schema } from 'mongoose';
+import db from 'core/mongo';
+import { date } from 'data/tools';
 import _ from 'lodash';
-import { Chat } from '../index';
+
+const Model = new Schema(
+  {
+    id: { type: String, required: true, unique: true },
+    type: String,
+    title: String,
+    username: String,
+    firstName: String,
+    lastName: String,
+    allMembersAreAdministrators: String,
+    // get chat
+    photo: String,
+    description: String,
+    inviteLink: String,
+    pinnedMessage: String,
+    stickerSetName: String,
+    catSetStickerSet: String,
+    users: [{ type: Schema.Types.ObjectId, ref: 'User' }],
+  },
+  {
+    timestamps: true,
+  },
+);
+
+function getChat() {
+  return {
+    id: this.id,
+    username: this.username,
+    type: this.type,
+    firstName: this.firstName,
+    lastName: this.lastName,
+    createdAt: date(this.createdAt),
+    updatedAt: date(this.updatedAt),
+  };
+}
+
+Model.virtual('formatted').get(getChat);
+
+const Chat = db.model('Chat', Model);
 
 function chatFormatter({
   id,
@@ -46,5 +87,5 @@ async function findOrCreateChat(data) {
   }
   return foundedChat;
 }
-
-export default findOrCreateChat;
+export { findOrCreateChat };
+export default Chat;

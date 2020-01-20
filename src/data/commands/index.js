@@ -1,5 +1,4 @@
 /* eslint-disable no-underscore-dangle */
-import { bot } from 'core/telegram';
 import _ from 'lodash';
 import debugHandler from 'debug';
 import {
@@ -16,19 +15,19 @@ import { formatTime } from 'data/tools';
 
 const debug = debugHandler('dopkabot:commands');
 
-export default () => {
+export default bot => {
   bot.catch(err => {
     debug(err);
   });
 
   bot.use(async (ctx, next) => {
-    ctx.pyroUser = await findOrCreateUser(ctx.from);
-    ctx.pyroChat = await findOrCreateChat(ctx.chat);
+    ctx.botUser = await findOrCreateUser(ctx.from);
+    ctx.botChat = await findOrCreateChat(ctx.chat);
     return next(ctx);
   });
 
   bot.command('start', async ctx => {
-    await findOrCreateActiveSub(ctx.pyroUser._id, ctx.pyroChat._id);
+    await findOrCreateActiveSub(ctx.botUser._id, ctx.botChat._id);
     return ctx.reply(
       'Чего опаздываем? На галерку не садимся, будете на первых партах меня слушать',
     );
@@ -46,30 +45,26 @@ export default () => {
 
   bot.command('me', async ctx => {
     const countD = await Dopka.count({
-      chat: ctx.pyroChat._id,
-      user: ctx.pyroUser._id,
+      chat: ctx.botChat._id,
+      user: ctx.botUser._id,
     });
     const countR = await Recovery.count({
-      chat: ctx.pyroChat._id,
-      user: ctx.pyroUser._id,
+      chat: ctx.botChat._id,
+      user: ctx.botUser._id,
     });
-    const text = `${
-      ctx.pyroUser.mention
-    } был на допке ${countD} раз, а на восстановлении ${countR} раз`;
+    const text = `${ctx.botUser.mention} был на допке ${countD} раз, а на восстановлении ${countR} раз`;
     return ctx.replyWithMarkdown(text);
   });
 
   bot.command('register', async ctx => {
     const [, wasCreated] = await findOrCreateActiveSub(
-      ctx.pyroUser._id,
-      ctx.pyroChat._id,
+      ctx.botUser._id,
+      ctx.botChat._id,
     );
-    const { pyroUser } = ctx;
+    const { botUser } = ctx;
     const text = wasCreated
-      ? `${pyroUser.mention}, так, значит лабу донесешь, жду на экзамене`
-      : `${
-          pyroUser.mention
-        }, ты глухой что-ли?\nЯ тебя уже отконсультировала, иди готовься к экзамену`;
+      ? `${botUser.mention}, так, значит лабу донесешь, жду на экзамене`
+      : `${botUser.mention}, ты глухой что-ли?\nЯ тебя уже отконсультировала, иди готовься к экзамену`;
     return ctx.replyWithMarkdown(text);
   });
 
@@ -77,7 +72,7 @@ export default () => {
     const dopkaInterval = Date.now() - intervals.dopka;
     const dopka = await Dopka.findOne({
       createdAt: { $gt: dopkaInterval },
-      chat: ctx.pyroChat._id,
+      chat: ctx.botChat._id,
     })
       .sort({ createdAt: 'desc' })
       .limit(1);
@@ -93,7 +88,7 @@ export default () => {
       return ctx.replyWithMarkdown(text);
     }
     const usersRelation = await UserSubToChat.find({
-      chat: ctx.pyroChat._id,
+      chat: ctx.botChat._id,
       active: true,
     });
     if (usersRelation.length === 0) {
@@ -104,7 +99,7 @@ export default () => {
     const onDopkaUserRelation = _.sample(usersRelation);
     const userOnDopka = await User.findById(onDopkaUserRelation.user);
     await new Dopka({
-      chat: ctx.pyroChat._id,
+      chat: ctx.botChat._id,
       user: onDopkaUserRelation.user,
     }).save();
     await ctx.replyWithMarkdown('Тааак...');
@@ -121,30 +116,26 @@ export default () => {
 
   bot.on('new_chat_members', async ctx => {
     const newUser = await findOrCreateUser(ctx.message.new_chat_participant);
-    const text = `${
-      newUser.mention
-    }, здравствуй, студент, садись около меня, на первой парте`;
+    const text = `${newUser.mention}, здравствуй, студент, садись около меня, на первой парте`;
     return ctx.replyWithMarkdown(text);
   });
 
   bot.on('left_chat_member', async ctx => {
     const leftUser = await findOrCreateUser(ctx.message.left_chat_participant);
     const userRelation = await UserSubToChat.findOne({
-      chat: ctx.pyroChat._id,
+      chat: ctx.botChat._id,
       user: leftUser._id,
     });
     userRelation.active = false;
     await userRelation.save();
-    const text = `${
-      leftUser.mention
-    } значит уходит после пары, а что дальше?\nВ армию пойдете?`;
+    const text = `${leftUser.mention} значит уходит после пары, а что дальше?\nВ армию пойдете?`;
     return ctx.replyWithMarkdown(text);
   });
 
   bot.command('top', async ctx => {
     const dopkas = await Dopka.aggregate([
       {
-        $match: { chat: ctx.pyroChat._id },
+        $match: { chat: ctx.botChat._id },
       },
       {
         $group: {
@@ -161,7 +152,7 @@ export default () => {
     ]);
     const recoveries = await Recovery.aggregate([
       {
-        $match: { chat: ctx.pyroChat._id },
+        $match: { chat: ctx.botChat._id },
       },
       {
         $group: {
@@ -213,7 +204,7 @@ export default () => {
     const recoveryInterval = Date.now() - intervals.recovery;
     const recovery = await Recovery.findOne({
       createdAt: { $gt: recoveryInterval },
-      chat: ctx.pyroChat._id,
+      chat: ctx.botChat._id,
     })
       .sort({ createdAt: 'desc' })
       .limit(1);
@@ -229,7 +220,7 @@ export default () => {
       return ctx.replyWithMarkdown(text);
     }
     const dopkas = await Dopka.find({
-      chat: ctx.pyroChat._id,
+      chat: ctx.botChat._id,
     });
     if (dopkas.length === 0) {
       return ctx.replyWithMarkdown(
@@ -239,7 +230,7 @@ export default () => {
     const randomDopka = _.sample(dopkas);
     const userOnRecovery = await User.findById(randomDopka.user);
     await new Recovery({
-      chat: ctx.pyroChat._id,
+      chat: ctx.botChat._id,
       user: randomDopka.user,
     }).save();
     await ctx.replyWithMarkdown('Значит вот эту справку оформишь...');

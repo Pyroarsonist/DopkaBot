@@ -1,24 +1,23 @@
 import Telegraf from 'telegraf';
 import fs from 'fs';
 import debugHandler from 'debug';
-import commands from '../data/commands';
+import setupCommands from '../data/commands';
 import { server, token, tlsPaths, sslFolder } from '../config';
 
 const debug = debugHandler('dopkabot:telegram');
 
-// eslint-disable-next-line import/no-mutable-exports
-let bot = null;
 export default async () => {
   if (!token) {
     throw new Error('No telegram bot key supplied');
   }
+  let bot;
   try {
     debug('Initializing telegram bot');
     bot = new Telegraf(token, { username: 'dopka_bot' });
 
     // loading commands
 
-    commands();
+    setupCommands(bot);
 
     // setting up connection webhooks or polling
     if (__DEV__ || !sslFolder) {
@@ -47,5 +46,3 @@ export default async () => {
     console.error(e);
   }
 };
-
-export { bot };
